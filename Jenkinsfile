@@ -47,7 +47,6 @@ pipeline{
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
-                archiveArtifacts artifacts: 'trivyfs.txt'
             }
         }
         stage("Docker Build & Push"){
@@ -66,13 +65,23 @@ pipeline{
         stage("TRIVY"){
             steps{
                 sh "trivy image kinason/netflix:latest > trivyimage.txt" 
-                archiveArtifacts artifacts: 'trivyimage.txt'
             }
         }
         stage('Deploy to container'){
             steps{
                 sh 'docker run -d -p 8081:80 kinason/netflix:latest'
             }
+        }
+    }
+    post {
+        always {
+            emailext attachLog: true,
+                subjects: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'ngweivo@gmail.com',
+                attachementsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
