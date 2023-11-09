@@ -15,7 +15,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'main', url: 'https://github.com/N4si/DevSecOps-Project.git'
+                git branch: 'main', url: 'https://github.com/afkademy/netflix-clone.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -47,6 +47,7 @@ pipeline{
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
+                archiveArtifacts artifacts: 'trivyfs.txt'
             }
         }
         stage("Docker Build & Push"){
@@ -65,6 +66,7 @@ pipeline{
         stage("TRIVY"){
             steps{
                 sh "trivy image kinason/netflix:latest > trivyimage.txt" 
+                archiveArtifacts artifacts: 'trivyimage.txt'
             }
         }
         stage('Deploy to container'){
